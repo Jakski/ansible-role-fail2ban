@@ -1,0 +1,7 @@
+{% for section, settings in fail2ban_jails.items() %}
+[{{ section }}]
+{% for k, v in settings.items() %}
+{{ k }} = {{ v }}
+{% endfor %}
+
+{% endfor %}

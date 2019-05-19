@@ -1,0 +1,39 @@
+---
+- hosts: instance
+  tasks:
+    - name: Create example log file
+      file:
+        state: touch
+        path: /var/log/auth.log
+        owner: root
+        group: root
+        mode: 0660
+        access_time: preserve
+        modification_time: preserve
+
+    - import_role:
+        name: fail2ban
+      vars:
+        fail2ban_jails:
+          sshd:
+            enabled: "true"
+            port: 12345
+        fail2ban_local:
+          loglevel: ERROR
+        fail2ban_actions:
+          dummy2.local: |
+            [Definition]
+            actionstart = touch /var/run/fail2ban/fail2ban.dummy
+                          printf %%b "<init>\n" >> /var/run/fail2ban/fail2ban.dummy
+            actionstop = rm -f /var/run/fail2ban/fail2ban.dummy
+            actioncheck =
+            actionban = printf %%b "+<ip>\n" >> /var/run/fail2ban/fail2ban.dummy
+            actionunban = printf %%b "-<ip>\n" >> /var/run/fail2ban/fail2ban.dummy
+            [Init]
+            init = 123
+          dummy.conf: null
+        fail2ban_filters:
+          test:
+            Definition:
+              failregex: tst
+              ignoreregex: ""

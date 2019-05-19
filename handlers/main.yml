@@ -1,0 +1,16 @@
+---
+- name: Restart fail2ban
+  service:
+    name: "{{ fail2ban_service }}"
+    state: restarted
+  register: _fail2ban_restarted
+  when: fail2ban_restart
+
+- name: Reload fail2ban
+  service:
+    name: "{{ fail2ban_service }}"
+    state: reloaded
+  when: >
+    fail2ban_reload and
+    (_fail2ban_restarted is not defined or
+    _fail2ban_restarted is not changed)

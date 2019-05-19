@@ -1,0 +1,100 @@
+---
+- name: Install fail2ban
+  apt:
+    name: "{{ fail2ban_package }}"
+    default_release: "{{ fail2ban_package_release | default(omit) }}"
+    state: present
+  notify:
+    - Restart fail2ban
+
+- name: "{{ fail2ban_enable | ternary('Enable', 'Disable') }} fail2ban service"
+  service:
+    name: "{{ fail2ban_service }}"
+    enabled: "{{ fail2ban_enable }}"
+
+- name: Remove predefined jails
+  file:
+    state: absent
+    path: "{{ fail2ban_jails_dir }}/"
+  when: fail2ban_manage_jails
+
+- name: Create fail2ban.local configuration file
+  template:
+    src: fail2ban.j2
+    dest: "{{ fail2ban_local_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Reload fail2ban
+
+- name: Create jail.local configuration file
+  template:
+    src: jail.j2
+    dest: "{{ fail2ban_jail_local_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Reload fail2ban
+
+- name: Remove action files
+  file:
+    state: absent
+    path: "{{ fail2ban_actions_dir }}/{{ item.key }}"
+  when: item.value is none
+  loop: "{{ fail2ban_actions | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify:
+    - Reload fail2ban
+
+- name: Create action files
+  copy:
+    content: "{{ item.value }}"
+    dest: "{{ fail2ban_actions_dir }}/{{ item.key }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: item.value is not none
+  loop: "{{ fail2ban_actions | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify:
+    - Reload fail2ban
+
+- name: Find existing local filters
+  find:
+    path: "{{ fail2ban_filters_dir }}"
+    recurse: false
+    file_type: any
+    patterns: "*.local"
+  register: _fail2ban_filters
+
+- name: Remove unmanaged local filters
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  when: >
+    (item.path | basename | regex_replace('(.*)\.local$', '\\1')) not in fail2ban_filters.keys()
+  loop: "{{ _fail2ban_filters.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  notify:
+    - Reload fail2ban
+
+- name: Create filter files
+  template:
+    src: filter.j2
+    dest: "{{ fail2ban_filters_dir }}/{{ item.key }}.local"
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    config: "{{ item.value }}"
+  when: item.value is not none
+  loop: "{{ fail2ban_filters | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify:
+    - Reload fail2ban

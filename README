@@ -1,0 +1,129 @@
+ansible-role-fail2ban
+*********************
+
+Role to setup fail2ban. It tries to not modify upstream configuration
+and only extend it with **.local* files where possible.
+
+
+Variables
+=========
+
+fail2ban_package_release
+
+   Package default release
+
+fail2ban_package
+
+fail2ban_service
+
+   System service name
+
+fail2ban_enable
+
+   Enable system service
+
+fail2ban_reload
+
+   Reload service when necessary
+
+fail2ban_restart
+
+   Restart service when necessary
+
+fail2ban_jails_dir
+
+   Directory with jails
+
+fail2ban_local_file
+
+   Main configuration file
+
+fail2ban_jail_local_file
+
+   Jails configuration file
+
+fail2ban_actions_dir
+
+   Directory with action files
+
+fail2ban_filters_dir
+
+   Directory with filter files
+
+fail2ban_local
+
+   Main configuration. See tests for examples.
+
+fail2ban_jails
+
+   Jails configuration. See tests for examples.
+
+fail2ban_actions
+
+   Action files. See tests for examples.
+
+fail2ban_filters
+
+   Filter files. *.local* suffix is added automatically. See tests for
+   examples.
+
+fail2ban_manage_jails
+
+   Remove unmanaged jails
+
+
+Examples
+========
+
+   ---
+   - hosts: instance
+     tasks:
+       - name: Create example log file
+         file:
+           state: touch
+           path: /var/log/auth.log
+           owner: root
+           group: root
+           mode: 0660
+           access_time: preserve
+           modification_time: preserve
+
+       - import_role:
+           name: fail2ban
+         vars:
+           fail2ban_jails:
+             sshd:
+               enabled: "true"
+               port: 12345
+           fail2ban_local:
+             loglevel: ERROR
+           fail2ban_actions:
+             dummy2.local: |
+               [Definition]
+               actionstart = touch /var/run/fail2ban/fail2ban.dummy
+                             printf %%b "<init>\n" >> /var/run/fail2ban/fail2ban.dummy
+               actionstop = rm -f /var/run/fail2ban/fail2ban.dummy
+               actioncheck =
+               actionban = printf %%b "+<ip>\n" >> /var/run/fail2ban/fail2ban.dummy
+               actionunban = printf %%b "-<ip>\n" >> /var/run/fail2ban/fail2ban.dummy
+               [Init]
+               init = 123
+             dummy.conf: null
+           fail2ban_filters:
+             test:
+               Definition:
+                 failregex: tst
+                 ignoreregex: ""
+
+
+Documentation
+=============
+
+Compile:
+
+   $ pip3 install -r requirements.txt
+   $ make man
+
+View:
+
+   $ man ./docs/man/ansible-role-fail2ban.1

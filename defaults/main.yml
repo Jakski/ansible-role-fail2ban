@@ -1,0 +1,60 @@
+---
+###
+# 
+fail2ban_package: fail2ban
+
+###
+# System service name
+fail2ban_service: fail2ban
+
+###
+# Enable system service
+fail2ban_enable: true
+
+###
+# Reload service when necessary
+fail2ban_reload: true
+
+###
+# Restart service when necessary
+fail2ban_restart: true
+
+###
+# Directory with jails
+fail2ban_jails_dir: /etc/fail2ban/jail.d
+
+###
+# Main configuration file
+fail2ban_local_file: /etc/fail2ban/fail2ban.local
+
+###
+# Jails configuration file
+fail2ban_jail_local_file: /etc/fail2ban/jail.local
+
+###
+# Directory with action files
+fail2ban_actions_dir: /etc/fail2ban/action.d
+
+###
+# Directory with filter files
+fail2ban_filters_dir: /etc/fail2ban/filter.d
+
+###
+# Main configuration. See tests for examples.
+fail2ban_local: {}
+
+###
+# Jails configuration. See tests for examples.
+fail2ban_jails: {}
+
+###
+# Action files. See tests for examples.
+fail2ban_actions: {}
+
+###
+# Filter files. `.local` suffix is added automatically. See tests for examples.
+fail2ban_filters: {}
+
+###
+# Remove unmanaged jails
+fail2ban_manage_jails: true
