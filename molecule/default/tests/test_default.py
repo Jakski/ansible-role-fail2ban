@@ -31,7 +31,7 @@ def test_package(host):
 
 
 def test_service(host):
-    assert host.run('fail2ban-client get sshd logpath').rc == 0
+    assert host.run('fail2ban-client ping').rc == 0
     fail2ban = host.service('fail2ban')
     assert fail2ban.is_running
     assert fail2ban.is_enabled
